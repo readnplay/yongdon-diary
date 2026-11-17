@@ -1,0 +1,16 @@
+﻿{
+  "name": "yongdon-diary",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/dev-server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.9.0",
+    "zod": "^4.6.7"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
