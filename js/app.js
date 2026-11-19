@@ -26,10 +26,10 @@ const BADGES = {
   first_review: ["🔍", "첫 돌아보기"], review5: ["🧠", "돌아보기 5번"],
   first_deposit: ["🏦", "첫 입금"], solo_deposit: ["🦸", "혼자 입금 도전"], deposit6: ["🔁", "입금 6번"],
   first_photo: ["📸", "첫 통장 사진"],
-  bal10k: ["💎", "통장 1만 원"], bal30k: ["💰", "통장 3만 원"], bal50k: ["🏆", "통장 5만 원"], bal100k: ["👑", "통장 10만 원"],
+  bal10k: ["💎", "통장 100만 원"], bal30k: ["💰", "통장 300만 원"], bal50k: ["🏆", "통장 500만 원"], bal100k: ["👑", "통장 1,000만 원"],
   first_give: ["💝", "첫 기부"], goal_done: ["🎯", "목표 달성"], contract_sign: ["✍️", "계약서 서명"],
   chore: ["🧹", "노력 용돈"], savings_ready: ["🌱", "적금 준비 완료"], savings_open: ["🌟", "적금 통장 개설"], match: ["⚖️", "잔액 딱 맞추기"],
-  first_interest: ["🎁", "첫 이자 발견"], bal200k: ["🌈", "통장 20만 원"],
+  first_interest: ["🎁", "첫 이자 발견"]
 };
 
 const PROMISES = ["매일 기록하기", "간식은 조금만", "저금통에 더 넣기", "은행 가서 입금하기", "목표 위해 모으기", "사기 전에 하루 생각하기", "기부하기", "가격 비교하기"];
@@ -253,11 +253,10 @@ function recordToday(st, date = today()) {
   if (days >= 100) addBadge(st, "rec100");
 }
 function checkBankBadges(st, balance) {
-  if (balance >= 10000) addBadge(st, "bal10k", 50);
-  if (balance >= 30000) addBadge(st, "bal30k", 50);
-  if (balance >= 50000) addBadge(st, "bal50k", 50);
-  if (balance >= 100000) addBadge(st, "bal100k", 50);
-  if (balance >= 200000) addBadge(st, "bal200k", 50);
+  if (balance >= 1000000) addBadge(st, "bal10k", 50);
+  if (balance >= 3000000) addBadge(st, "bal30k", 50);
+  if (balance >= 5000000) addBadge(st, "bal50k", 50);
+  if (balance >= 10000000) addBadge(st, "bal100k", 50);
 }
 
 // ---------- 화면 공통 ----------
@@ -869,13 +868,16 @@ function fedAnimation(newInt) {
 // ---------- 은행 저금 단계 · 원금과 이자 ----------
 const TIERS = [
   { min: 0, name: "새싹 통장", e: "🌱", say: "작은 씨앗이 통장에 심어졌어요" },
-  { min: 10000, name: "동전 통장", e: "🪙", say: "동전이 차곡차곡 쌓이기 시작했어요" },
-  { min: 30000, name: "은빛 통장", e: "🥈", say: "통장이 은빛으로 반짝여요" },
-  { min: 50000, name: "황금 통장", e: "🥇", say: "와! 통장이 황금빛이 됐어요" },
-  { min: 100000, name: "다이아 통장", e: "💎", say: "10만 원 돌파! 다이아몬드처럼 빛나요" },
-  { min: 200000, name: "왕관 통장", e: "👑", say: "저축왕의 왕관을 썼어요" },
-  { min: 500000, name: "전설의 보물 통장", e: "🌈", say: "전설 속 보물 상자가 열렸어요" },
-  { min: 1000000, name: "우주 최강 통장", e: "🚀", say: "100만 원! 우주 최강 저축가예요" },
+  { min: 1000000, name: "동전 통장", e: "🪙", say: "100만 원! 동전이 차곡차곡 쌓였어요" },
+  { min: 2000000, name: "은빛 통장", e: "🥈", say: "200만 원! 통장이 은빛으로 반짝여요" },
+  { min: 3000000, name: "황금 통장", e: "🥇", say: "300만 원! 통장이 황금빛이 됐어요" },
+  { min: 4000000, name: "다이아 통장", e: "💎", say: "400만 원! 다이아몬드처럼 빛나요" },
+  { min: 5000000, name: "왕관 통장", e: "👑", say: "500만 원! 저축왕의 왕관을 썼어요" },
+  { min: 6000000, name: "용의 보물 통장", e: "🐉", say: "600만 원! 용이 지키는 보물이 됐어요" },
+  { min: 7000000, name: "무지개 통장", e: "🌈", say: "700만 원! 무지개가 떴어요" },
+  { min: 8000000, name: "은하수 통장", e: "🌌", say: "800만 원! 별처럼 반짝이는 통장이에요" },
+  { min: 9000000, name: "태양 통장", e: "☀️", say: "900만 원! 태양처럼 눈부셔요" },
+  { min: 10000000, name: "우주 최강 통장", e: "🚀", say: "1,000만 원! 우주 최강 저축가예요" },
 ];
 function tierOf(v) { let i = 0; TIERS.forEach((t, k) => { if (v >= t.min) i = k; }); return i; }
 function bankTotal() { return bankAccounts().reduce((a, x) => a + Math.max(0, bankEstimate(x.id).est), 0); }
@@ -911,13 +913,16 @@ function coinArt(i) {
   }
   if (i >= 4) g += `<g transform="translate(100 ${i >= 5 ? 44 : 30})"><polygon points="-16,-6 -8,-16 8,-16 16,-6 0,16" fill="#9EE7FF" stroke="#3FB7E8" stroke-width="2"/><polygon points="-8,-16 0,-6 8,-16" fill="#D8F6FF"/><line x1="-16" y1="-6" x2="16" y2="-6" stroke="#3FB7E8" stroke-width="1.5"/></g>`;
   if (i >= 5) g += `<g transform="translate(100 16)"><path d="M-22 10 L-22 -6 L-11 3 L0 -12 L11 3 L22 -6 L22 10 Z" fill="#FFD84D" stroke="#C98A00" stroke-width="2"/><circle cx="0" cy="-12" r="3" fill="#FF6FA5"/></g>`;
+  if (i >= 6) g += `<text x="22" y="40" font-size="20">⭐</text><text x="160" y="30" font-size="16">⭐</text>`;
+  if (i >= 8) g += `<circle cx="172" cy="70" r="11" fill="#FFB86B"/><ellipse cx="172" cy="70" rx="19" ry="5" fill="none" stroke="#FFE7A0" stroke-width="2.5"/>`;
+  if (i >= 10) g += `<text x="10" y="90" font-size="24">🚀</text>`;
   return `<svg viewBox="0 0 200 140" class="${i >= 3 ? "bob" : ""}" style="transform-origin:100px 130px">${g}</svg>`;
 }
 function vaultCard(big) {
   const tot = bankTotal(), i = tierOf(tot), T = TIERS[i], N = TIERS[i + 1];
   const ii = interestInfo();
   const pct = N ? Math.round(((tot - T.min) / (N.min - T.min)) * 100) : 100;
-  const spark = Array.from({ length: i * 2 }, (_, k) => `<span class="spk" style="left:${(k * 37 + 11) % 92}%;top:${(k * 53 + 7) % 80}%;animation-delay:${(k % 5) * 0.3}s">✨</span>`).join("");
+  const spark = Array.from({ length: Math.min(12, i * 2) }, (_, k) => `<span class="spk" style="left:${(k * 37 + 11) % 92}%;top:${(k * 53 + 7) % 80}%;animation-delay:${(k % 5) * 0.3}s">✨</span>`).join("");
   const waiting = bal("bank");
   return `<div class="vault t${i}${big ? " big" : ""}" ${big ? "" : `onclick="go('bankt')" role="button"`}>${spark}
     <div class="vleft">

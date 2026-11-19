@@ -213,15 +213,19 @@ label.fld span{display:block;font-family:Jua;margin-bottom:4px}
 .vault.t3{background:linear-gradient(135deg,#FFF6C9,#FFD34D 60%,#F5B400);border:3px solid #FFE68A}
 .vault.t4{background:linear-gradient(135deg,#E8F9FF,#A6E3FA 50%,#CDBBFF);border:3px solid #fff}
 .vault.t5{background:linear-gradient(135deg,#6A3FD0,#B347D6 60%,#E35BB5);color:#fff;border:3px solid #FFD84D}
-.vault.t6{background:linear-gradient(120deg,#FF7AA8,#FFB347,#FFE66B,#7BE08A,#6CC6FF,#B48CFF,#FF7AA8);background-size:300% 300%;animation:rainbow 6s linear infinite;color:#fff;border:3px solid #fff;text-shadow:0 2px 3px rgba(0,0,0,.25)}
-.vault.t7{background:radial-gradient(circle at 20% 20%,#5B3BB3,#1A1447 70%);color:#fff;border:3px solid #FFD84D}
-.vault.t5 .vtier,.vault.t6 .vtier,.vault.t7 .vtier{background:rgba(255,255,255,.22)}
-.vault.t5 .vprog,.vault.t6 .vprog,.vault.t7 .vprog{background:rgba(255,255,255,.25)}
+.vault.t6{background:linear-gradient(135deg,#B3122E,#E8452C 55%,#FF9A3C);color:#fff;border:3px solid #FFD84D}
+.vault.t7{background:linear-gradient(120deg,#FF7AA8,#FFB347,#FFE66B,#7BE08A,#6CC6FF,#B48CFF,#FF7AA8);background-size:300% 300%;animation:rainbow 6s linear infinite;color:#fff;border:3px solid #fff;text-shadow:0 2px 3px rgba(0,0,0,.25)}
+.vault.t8{background:radial-gradient(circle at 20% 20%,#5B3BB3,#1A1447 70%);color:#fff;border:3px solid #B9A5FF}
+.vault.t9{background:radial-gradient(circle at 80% 30%,#FFFBE0,#FFD84D 35%,#FF9F1C 75%);color:#5A2E00;border:3px solid #fff;box-shadow:0 0 28px rgba(255,190,40,.8),var(--shadow);animation:glow 2.4s ease-in-out infinite}
+.vault.t10{background:radial-gradient(circle at 20% 20%,#5B3BB3,#0C0A2A 70%);color:#fff;border:4px solid transparent;background-clip:padding-box;box-shadow:0 0 0 4px #FFD84D,0 0 30px rgba(180,140,255,.9)}
+.vault.t5 .vtier,.vault.t6 .vtier,.vault.t7 .vtier,.vault.t8 .vtier,.vault.t10 .vtier{background:rgba(255,255,255,.22)}
+.vault.t5 .vprog,.vault.t6 .vprog,.vault.t7 .vprog,.vault.t8 .vprog,.vault.t10 .vprog{background:rgba(255,255,255,.25)}
+@keyframes glow{50%{box-shadow:0 0 44px rgba(255,190,40,1),var(--shadow)}}
 @keyframes rainbow{to{background-position:300% 0}}
-.vault.t2:after,.vault.t3:after,.vault.t4:after,.vault.t5:after,.vault.t6:after,.vault.t7:after{content:"";position:absolute;top:0;bottom:0;width:40%;left:-60%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.65),transparent);animation:shine 3.6s ease-in-out infinite;pointer-events:none}
+.vault.t2:after,.vault.t3:after,.vault.t4:after,.vault.t5:after,.vault.t6:after,.vault.t7:after,.vault.t8:after,.vault.t9:after,.vault.t10:after{content:"";position:absolute;top:0;bottom:0;width:40%;left:-60%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.65),transparent);animation:shine 3.6s ease-in-out infinite;pointer-events:none}
 @keyframes shine{60%,100%{left:130%}}
-.vault.t5 .vamt,.vault.t6 .vamt,.vault.t7 .vamt{font-size:2.7rem}
-.vault.big.t5 .vamt,.vault.big.t6 .vamt,.vault.big.t7 .vamt{font-size:3.3rem}
+.vault.t5 .vamt,.vault.t6 .vamt,.vault.t7 .vamt,.vault.t8 .vamt,.vault.t9 .vamt,.vault.t10 .vamt{font-size:2.7rem}
+.vault.big.t5 .vamt,.vault.big.t6 .vamt,.vault.big.t7 .vamt,.vault.big.t8 .vamt,.vault.big.t9 .vamt,.vault.big.t10 .vamt{font-size:3.3rem}
 /* 원금과 이자 */
 .pibar{display:flex;height:26px;border-radius:99px;overflow:hidden;background:#F3E8D6}
 .pibar .pp{background:linear-gradient(90deg,#9ED7FF,#3DA5F4)}
@@ -236,7 +240,7 @@ details.rows table{width:100%;border-collapse:collapse;font-size:.8rem;margin-to
 details.rows td,details.rows th{border-bottom:1px solid var(--line);padding:4px 2px;text-align:right}
 details.rows td:nth-child(2),details.rows th:nth-child(2){text-align:left}
 details.rows tr.int td{background:#FFF6D6}
-@media (max-width:640px){.vault{grid-template-columns:1fr 110px;padding:14px}.vault .vamt{font-size:2rem}.vault.big .vamt{font-size:2.3rem}}
+@media (max-width:640px){.vault{grid-template-columns:1fr 100px;padding:14px}.vault .vleft .vamt{font-size:1.9rem!important}}
 </style>
 </head>
 <body>
