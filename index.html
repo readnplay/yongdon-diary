@@ -189,6 +189,54 @@ label.fld span{display:block;font-family:Jua;margin-bottom:4px}
   .tiles{grid-template-columns:repeat(3,1fr)}
   .grid2{grid-template-columns:1fr}
 }
+
+/* 은행 금고 카드 (금액이 클수록 화려해짐) */
+.startban{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:linear-gradient(120deg,#FFE3A3,#FFC36B);border-radius:22px;padding:14px 16px;margin-bottom:14px;box-shadow:var(--shadow);animation:pulse 2s ease-in-out infinite}
+.startban .e{font-size:2.2rem}.startban b{font-family:Jua;font-weight:400;font-size:1.15rem}
+.startban .xp{background:#fff;color:#B5600A;border-radius:99px;padding:4px 10px;font-family:Jua}
+@keyframes pulse{50%{transform:scale(1.015)}}
+.vault{position:relative;overflow:hidden;display:grid;grid-template-columns:1fr minmax(120px,210px);gap:10px;align-items:center;border-radius:24px;padding:16px 18px;margin-bottom:14px;box-shadow:var(--shadow);cursor:pointer;color:#33263F}
+.vault.big{cursor:default}
+.vault .vtier{font-family:Jua;font-size:1.15rem;display:inline-block;background:rgba(255,255,255,.55);border-radius:99px;padding:3px 12px}
+.vault .vlab{opacity:.85;margin-top:2px}
+.vault .vamt{font-family:Jua;font-size:2.4rem;line-height:1.15;margin:2px 0}
+.vault.big .vamt{font-size:3rem}
+.vault .vint{display:inline-block;font-family:Jua;background:#FFF3C4;color:#9A6400;border-radius:12px;padding:3px 10px;margin:2px 0 4px}
+.vault .vprog{height:12px;background:rgba(255,255,255,.55);border-radius:99px;overflow:hidden;margin:6px 0 2px;max-width:340px}
+.vault .vprog i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#FFE27A,#FFB300)}
+.vault .vart svg{width:100%;height:auto;display:block}
+.vault .spk{position:absolute;font-size:.9rem;animation:tw 1.8s ease-in-out infinite;pointer-events:none}
+.vault>.vleft,.vault>.vart{position:relative;z-index:1}
+.vault.t0{background:linear-gradient(135deg,#ECF9F0,#C8EED6)}
+.vault.t1{background:linear-gradient(135deg,#FFF0DD,#F4C48F)}
+.vault.t2{background:linear-gradient(135deg,#FAFBFD,#CDD5E1);border:3px solid #fff}
+.vault.t3{background:linear-gradient(135deg,#FFF6C9,#FFD34D 60%,#F5B400);border:3px solid #FFE68A}
+.vault.t4{background:linear-gradient(135deg,#E8F9FF,#A6E3FA 50%,#CDBBFF);border:3px solid #fff}
+.vault.t5{background:linear-gradient(135deg,#6A3FD0,#B347D6 60%,#E35BB5);color:#fff;border:3px solid #FFD84D}
+.vault.t6{background:linear-gradient(120deg,#FF7AA8,#FFB347,#FFE66B,#7BE08A,#6CC6FF,#B48CFF,#FF7AA8);background-size:300% 300%;animation:rainbow 6s linear infinite;color:#fff;border:3px solid #fff;text-shadow:0 2px 3px rgba(0,0,0,.25)}
+.vault.t7{background:radial-gradient(circle at 20% 20%,#5B3BB3,#1A1447 70%);color:#fff;border:3px solid #FFD84D}
+.vault.t5 .vtier,.vault.t6 .vtier,.vault.t7 .vtier{background:rgba(255,255,255,.22)}
+.vault.t5 .vprog,.vault.t6 .vprog,.vault.t7 .vprog{background:rgba(255,255,255,.25)}
+@keyframes rainbow{to{background-position:300% 0}}
+.vault.t2:after,.vault.t3:after,.vault.t4:after,.vault.t5:after,.vault.t6:after,.vault.t7:after{content:"";position:absolute;top:0;bottom:0;width:40%;left:-60%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.65),transparent);animation:shine 3.6s ease-in-out infinite;pointer-events:none}
+@keyframes shine{60%,100%{left:130%}}
+.vault.t5 .vamt,.vault.t6 .vamt,.vault.t7 .vamt{font-size:2.7rem}
+.vault.big.t5 .vamt,.vault.big.t6 .vamt,.vault.big.t7 .vamt{font-size:3.3rem}
+/* 원금과 이자 */
+.pibar{display:flex;height:26px;border-radius:99px;overflow:hidden;background:#F3E8D6}
+.pibar .pp{background:linear-gradient(90deg,#9ED7FF,#3DA5F4)}
+.pibar .pi{background:linear-gradient(90deg,#FFE27A,#FFB300)}
+.pibox{background:#EAF5FF;border-radius:16px;padding:10px 12px}
+.pibox.gold{background:#FFF6D6}
+.bars div.gold{background:linear-gradient(#FFE27A,#FFB300)}
+.intfound{background:linear-gradient(135deg,#FFF8D9,#FFE89A);border:2px solid #FFD54A;border-radius:16px;padding:10px 12px;margin:8px 0;line-height:1.6}
+details.rows{background:#fff;border-radius:14px;padding:8px 10px;margin:8px 0}
+details.rows summary{font-family:Jua;cursor:pointer}
+details.rows table{width:100%;border-collapse:collapse;font-size:.8rem;margin-top:6px}
+details.rows td,details.rows th{border-bottom:1px solid var(--line);padding:4px 2px;text-align:right}
+details.rows td:nth-child(2),details.rows th:nth-child(2){text-align:left}
+details.rows tr.int td{background:#FFF6D6}
+@media (max-width:640px){.vault{grid-template-columns:1fr 110px;padding:14px}.vault .vamt{font-size:2rem}.vault.big .vamt{font-size:2.3rem}}
 </style>
 </head>
 <body>
