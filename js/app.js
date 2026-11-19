@@ -24,7 +24,7 @@ const CATS = {
 const BADGES = {
   first_record: ["📝", "첫 기록"], rec7: ["🗓️", "기록 7일"], rec30: ["📚", "기록 30일"], rec100: ["🏅", "기록 100일"],
   first_review: ["🔍", "첫 돌아보기"], review5: ["🧠", "돌아보기 5번"],
-  first_deposit: ["🏦", "첫 입금"], solo_deposit: ["🦸", "혼자 입금 도전"], deposit6: ["🔁", "입금 6번"],
+  first_deposit: ["🏦", "첫 입금"], solo_deposit: ["🦸", "혼자 은행 다녀오기"], deposit6: ["🔁", "입금 6번"],
   first_photo: ["📸", "첫 통장 사진"],
   bal10k: ["💎", "통장 100만 원"], bal30k: ["💰", "통장 300만 원"], bal50k: ["🏆", "통장 500만 원"], bal100k: ["👑", "통장 1,000만 원"],
   first_give: ["💝", "첫 기부"], goal_done: ["🎯", "목표 달성"], contract_sign: ["✍️", "계약서 서명"],
@@ -739,10 +739,10 @@ function renderDeposit() {
   setModal(`${head("통장에 넣었어요 💰", "renderBank1()")}
     <div class="step">얼마 넣었어요? <span class="muted">(은행 갈 돈 ${fmt(bal("bank"))})</span></div>
     ${keypad(F.amount, Math.max(0, bal("bank")), (v) => (F.amount = v))}
-    ${bankAccounts().length > 1 ? `<div class="step" style="margin-top:12px">어느 통장에?</div>${accChips("to")}` : ""}
+    ${bankAccounts().length > 1 ? `<div class="step" style="margin-top:12px">어느 통장에 넣었어요?</div>${accChips("to")}` : ""}
     <div class="step" style="margin-top:12px">누구랑 갔어요?</div>
     <div class="chips"><button class="chip ${F.with === "parent" ? "on" : ""}" onclick="F.with='parent';pickChip(this)">👨‍👩‍👦 부모님이랑</button>
-      <button class="chip ${F.with === "solo" ? "on" : ""}" onclick="F.with='solo';pickChip(this)">🦸 혼자 도전!</button></div>
+      <button class="chip ${F.with === "solo" ? "on" : ""}" onclick="F.with='solo';pickChip(this)">🦸 혼자 갔어요! <span class="xp">+30</span></button></div>
     <div style="height:14px"></div>
     <div class="grid2">
       <button class="btn blue" onclick="if(!F.amount)return toast('금액을 눌러 주세요');F.account=F.to;renderBankPhoto()">📸 통장 사진도 찍을래요</button>
@@ -754,7 +754,10 @@ function renderBankPhoto() {
     <p>ATM에서 <b>통장 정리</b>를 하고, 거래 줄들과 마지막 줄 <b>잔액</b>이 잘 보이게 찍어요.</p>
     <p class="small muted">💡 여러 쪽이면 한 쪽씩 따로 올려도 돼요. AI가 <b>이자</b> 줄도 찾아 줘요!</p>
     <p class="notice">🔒 계좌번호는 손가락이나 종이로 가리고 찍어요!</p>
-    ${accChips("account")}
+    ${bankAccounts().length > 1 ? `<div class="step">어느 통장 사진이에요?</div>` : ""}${accChips("account")}
+    ${F.mode !== "deposit" ? `<div class="step" style="margin-top:8px">누구랑 은행에 갔어요?</div>
+    <div class="chips" style="margin-bottom:10px"><button class="chip ${F.with === "parent" ? "on" : ""}" onclick="F.with='parent';pickChip(this)">👨‍👩‍👦 부모님이랑</button>
+      <button class="chip ${F.with === "solo" ? "on" : ""}" onclick="F.with='solo';pickChip(this)">🦸 혼자 갔어요! <span class="xp">+30</span></button></div>` : ""}
     <label class="btn blue wide" style="display:block;text-align:center">📷 사진 찍기 / 고르기
       <input type="file" accept="image/*" capture="environment" style="display:none" onchange="bankPhotoPicked(this.files[0])"></label>
     <div id="photoArea" style="margin-top:12px"></div>`);
@@ -835,13 +838,17 @@ async function bankSave() {
       const n = Object.keys(st.xpKeys).filter((k) => k.startsWith("dep:" + cyc + ":")).length;
       if (n < 2) addXP(st, "dep:" + cyc + ":" + n, 40, "은행 입금");
       addBadge(st, "first_deposit");
-      if (f.with === "solo") addBadge(st, "solo_deposit");
       if (st.txs.filter((x) => x.kind === "deposit").length >= 6) addBadge(st, "deposit6");
     }
     if (hasRecord) {
       st.bank.records.push({ id: recId, at: new Date(Date.now() + 1000).toISOString(), date: t, account: f.account, balance: f.balance, ai: f.ocr && f.ocr.found ? f.ocr.balance : null, photoId, rows: f.rows || [], parentOk: false });
       if (f.small) { addXP(st, "photo:" + cyc, 30, "통장 사진"); addBadge(st, "first_photo"); }
       checkBankBadges(st, f.balance);
+    }
+    if (f.with === "solo" && (f.mode === "deposit" || f.small)) {
+      const n = Object.keys(st.xpKeys).filter((k) => k.startsWith("solo:" + cyc + ":")).length;
+      if (n < 2) addXP(st, "solo:" + cyc + ":" + n, 30, "혼자 은행 다녀오기");
+      addBadge(st, "solo_deposit");
     }
     newInts.slice(0, 3).forEach((x) => addXP(st, "int:" + rowKey(x), 20, "이자 발견"));
     if (newInts.length) addBadge(st, "first_interest");
@@ -927,7 +934,7 @@ function vaultCard(big) {
   return `<div class="vault t${i}${big ? " big" : ""}" ${big ? "" : `onclick="go('bankt')" role="button"`}>${spark}
     <div class="vleft">
       <div class="vtier">${T.e} ${T.name}</div>
-      <div class="small vlab">은행에 모은 돈</div>
+      <div class="small vlab">은행에 모은 돈${bankAccounts().length > 1 ? ` (통장 ${bankAccounts().length}개 합계)` : ""}</div>
       <div class="vamt num">${fmt(tot)}</div>
       ${ii.interest ? `<div class="vint">🎁 은행이 준 이자 ${fmt(ii.interest)}</div>` : ""}
       ${N ? `<div class="vprog"><i style="width:${Math.max(3, pct)}%"></i></div><div class="small vlab">다음 '${N.e} ${N.name}'까지 ${fmt(N.min - tot)}</div>` : `<div class="small vlab">최고 단계 달성! 🏆</div>`}
@@ -1179,34 +1186,70 @@ function goalKeep(id) {
 }
 
 // ---------- 통장 탭 ----------
-function viewBank() {
-  const e = bankEstimate("main"), sp = savingsProgress();
-  const recs = S.bank.records.slice().sort((a, b) => (a.at < b.at ? 1 : -1));
-  const rows = bankRows("main").filter((x) => x.bal > 0);
-  const chart = rows.length >= 2 ? rows.slice(-12).map((x) => ({ v: x.bal, int: x.int, d: x.d }))
-    : recs.filter((r) => (r.account || "main") === "main").slice(0, 8).reverse().map((r) => ({ v: r.balance, d: r.date }));
+// 통장 종류별 모양
+const ACC_STYLE = { 입출금: { e: "🏦", c: "#3DA5F4" }, 적금: { e: "🌟", c: "#FFB300" }, 예금: { e: "💎", c: "#9B6BFF" } };
+let BANK_CH = "main";
+function accInfo(a) {
+  const p = S.bank.products.find((x) => x.id === a.id) || null;
+  const e = bankEstimate(a.id), ii = interestInfo(a.id);
+  const st = ACC_STYLE[a.type] || ACC_STYLE.입출금;
+  let mat = null;
+  if (p && p.end) {
+    const dd = daysBetween(today(), p.end), total = Math.max(1, daysBetween(p.start || today(), p.end));
+    let expInt = 0;
+    if (p.rate && p.type === "예금") expInt = Math.round((Math.max(0, e.est) * p.rate) / 100 * (total / 365));
+    if (p.rate && p.type === "적금" && p.monthly) { const n = Math.max(1, Math.round(total / 30.4)); expInt = Math.round((p.monthly * p.rate) / 100 * (n * (n + 1)) / 2 / 12); }
+    mat = { dd, total, pct: Math.min(100, Math.max(0, Math.round(((total - dd) / total) * 100))), expInt };
+  }
+  return { a, p, e, ii, st, mat };
+}
+function accountsCard() {
+  const accs = bankAccounts().map(accInfo);
+  const tot = accs.reduce((s, x) => s + Math.max(0, x.e.est), 0);
+  const hasDep = S.bank.products.some((p) => p.type === "예금"), hasSav = S.bank.products.some((p) => p.type === "적금");
+  return `<div class="card"><h2>📒 내 통장 ${accs.length}개</h2>
+    ${tot ? `<div class="accbar">${accs.map((x) => `<i style="width:${(Math.max(0, x.e.est) / tot) * 100}%;background:${x.st.c}" title="${esc(x.a.name)}"></i>`).join("")}</div>` : ""}
+    ${accs.map((x) => `<div class="acc" style="--c:${x.st.c}">
+      <div class="row"><span class="ae">${x.st.e}</span><div class="grow"><b class="jua" style="font-size:1.15rem">${esc(x.a.name)}</b>
+        <div class="small muted">${x.p ? esc(x.a.type) + " 통장" : "기본 통장 · 넣고 빼는 통장"}${x.p && x.p.bank ? " · " + esc(x.p.bank) : ""}${x.p && x.p.rate ? ` · 연 ${x.p.rate}%` : ""}${x.p && x.p.monthly ? ` · 매달 ${fmt(x.p.monthly)}` : ""}</div></div>
+        <div style="text-align:right"><div class="jua" style="font-size:1.45rem">${fmt(x.e.est)}</div>${tot ? `<div class="small muted">${Math.round((Math.max(0, x.e.est) / tot) * 100)}%</div>` : ""}</div></div>
+      <div class="small muted" style="margin:4px 0 0 46px">${x.e.last ? `${kdate(x.e.last.date)} 통장 ${x.e.last.photoId ? "사진" : "기록"} ${fmt(x.e.last.balance)}${x.e.est !== x.e.last.balance ? " + 그 뒤 입금" : ""}` : "아직 잔액 기록이 없어요"}${x.ii.interest ? ` · 🎁 이자 ${fmt(x.ii.interest)}` : ""}</div>
+      ${x.mat ? `<div style="margin:8px 0 0 46px"><div class="prog" style="height:18px"><i style="width:${x.mat.pct}%;background:linear-gradient(90deg,#FFE27A,${x.st.c})"></i><span>${x.mat.dd >= 0 ? `만기까지 ${x.mat.dd}일 (${x.p.end.slice(0, 4)}년 ${kdate(x.p.end)})` : "만기가 됐어요! 🎉 부모님과 은행에 가요"}</span></div>
+        ${x.mat.expInt ? `<div class="small" style="margin-top:4px">🎁 만기에 받을 이자 예상: 약 <b>${fmt(x.mat.expInt)}</b> <span class="muted">(세금 떼기 전)</span></div>` : ""}</div>` : ""}
+      <div class="row" style="margin:8px 0 0 46px;gap:6px"><button class="chip" onclick="bankFlowAcc('photo','${x.a.id}')">📸 사진</button><button class="chip" onclick="bankFlowAcc('manual','${x.a.id}')">✍️ 잔액</button>${x.p ? `<button class="chip" onclick="parentEnter(()=>productEdit('${x.p.id}'))">⚙️ 정보</button>` : ""}</div>
+    </div>`).join("")}
+    <div class="acctotal"><span class="jua">합계</span><span class="jua" style="font-size:1.7rem">${fmt(tot)}</span></div>
+    ${!hasDep || !hasSav ? `<div class="row wrap" style="gap:8px;margin-top:10px">${!hasSav ? `<button class="btn sec grow" onclick="parentEnter(()=>productEdit(null,'적금'))">🌟 적금 통장 추가</button>` : ""}${!hasDep ? `<button class="btn sec grow" onclick="parentEnter(()=>productEdit(null,'예금'))">💎 예금 통장 추가</button>` : ""}</div><p class="small muted center">통장 추가는 부모님 비밀번호가 필요해요</p>` : ""}
+    <button class="btn blue wide" style="margin-top:12px" onclick="bankFlow()">🏦 은행 다녀왔어요</button>
+  </div>`;
+}
+function bankFlowAcc(mode, acc) { bankFlow(mode); F.account = acc; F.to = acc; F.balance = 0; mode === "photo" ? renderBankPhoto() : renderBankManual(); }
+function balanceChartCard() {
+  const accs = bankAccounts();
+  if (!accs.some((a) => a.id === BANK_CH)) BANK_CH = "main";
+  const recs = S.bank.records.filter((r) => (r.account || "main") === BANK_CH).sort((a, b) => (a.at < b.at ? -1 : 1));
+  const rows = bankRows(BANK_CH).filter((x) => x.bal > 0);
+  const chart = rows.length >= 2 ? rows.slice(-12).map((x) => ({ v: x.bal, int: x.int, d: x.d })) : recs.slice(-8).map((r) => ({ v: r.balance, d: r.date }));
   const mx = Math.max(1, ...chart.map((r) => r.v));
-  const step = S.bank.products.some((p) => p.type === "예금") ? 4 : S.bank.products.length ? 3 : sp.ready ? 2 : 1;
+  return `<div class="card"><h2>📈 잔액이 자라는 모습</h2>
+    ${accs.length > 1 ? `<div class="chips" style="margin-bottom:6px">${accs.map((a) => `<button class="chip ${BANK_CH === a.id ? "on" : ""}" onclick="BANK_CH='${a.id}';render()">${(ACC_STYLE[a.type] || ACC_STYLE.입출금).e} ${esc(a.name)}</button>`).join("")}</div>` : ""}
+    ${chart.length > 1 ? `<div class="bars" style="margin-top:14px">${chart.map((r) => `<div class="${r.int ? "gold" : ""}" style="height:${Math.max(4, Math.round((r.v / mx) * 100))}%" title="${r.d || ""}"><span>${r.int ? "🎁" : (r.v / 10000).toFixed(r.v >= 1000000 ? 0 : 1) + "만"}</span></div>`).join("")}</div>
+      <div class="small muted center" style="margin-top:4px">통장 사진에서 읽은 잔액${chart.some((r) => r.int) ? " · 🎁 = 이자 받은 날" : ""}</div>` : `<p class="small muted">통장 사진을 올리면 잔액이 자라는 그래프가 생겨요.</p>`}
+  </div>`;
+}
+function viewBank() {
+  const sp = savingsProgress();
+  const recs = S.bank.records.slice().sort((a, b) => (a.at < b.at ? 1 : -1));
+  const step = S.bank.products.some((p) => p.type === "예금") ? 5 : S.bank.products.length ? 4 : sp.ready ? 3 : 2;
   return `
   ${vaultCard(true)}
-  <div class="card"><h2>🏦 입출금 통장</h2>
-    <div class="jua" style="font-size:2.2rem">${fmt(e.est)}</div>
-    <div class="small muted">${e.last ? `${kdate(e.last.date)} 통장 ${e.last.photoId ? "사진" : "기록"} ${fmt(e.last.balance)}${e.est !== e.last.balance ? " + 그 뒤 입금" : ""}` : "아직 통장 사진이 없어요. 통장 정리하고 사진을 올려 봐요!"}</div>
-    ${chart.length > 1 ? `<div class="bars" style="margin-top:14px">${chart.map((r) => `<div class="${r.int ? "gold" : ""}" style="height:${Math.max(4, Math.round((r.v / mx) * 100))}%" title="${r.d || ""}"><span>${r.int ? "🎁" : (r.v / 10000).toFixed(1) + "만"}</span></div>`).join("")}</div>
-      <div class="small muted center" style="margin-top:4px">통장 잔액이 자라는 모습${chart.some((r) => r.int) ? " · 🎁 = 이자 받은 날" : ""}</div>` : ""}
-    <div class="grid2" style="margin-top:12px"><button class="btn blue" onclick="bankFlow()">은행 다녀왔어요</button><button class="btn sec" onclick="bankFlow('photo')">📸 통장 사진 올리기</button></div>
-  </div>
-  ${S.bank.products.map((p) => {
-    const est = bankEstimate(p.id).est, endD = p.end, dd = endD ? daysBetween(today(), endD) : null;
-    return `<div class="card"><h2>${p.type === "예금" ? "💎" : "🌟"} ${esc(p.name || p.type)} <span class="small muted">${esc(p.bank || "")}</span></h2>
-      <div class="jua" style="font-size:1.8rem">${fmt(est)}</div>
-      <div class="small muted">${p.rate ? `금리 연 ${p.rate}% · ` : ""}${endD ? (dd >= 0 ? `만기까지 ${dd}일 (${kdate(endD)})` : "만기가 됐어요! 🎉 부모님과 은행에 가요") : ""}</div></div>`;
-  }).join("")}
+  ${accountsCard()}
+  ${balanceChartCard()}
   ${interestCard()}
   <div class="card"><h2>🪜 저축 사다리</h2>
     ${[["입출금 통장", "지금 쓰는 통장에 꾸준히 넣기", 1], ["적금 준비", `입금 ${sp.dc}/${sp.rule.deposits}번 · 통장 ${fmt(sp.b)}/${fmt(sp.rule.minBalance)}`, 2], ["적금 통장 만들기", "조금씩 여러 번 넣는 약속 통장", 3], ["예금 도전", "적금 만기 돈을 한 번에 맡기기", 4]].map(([n, d, i]) => `
       <div class="row" style="margin:8px 0;opacity:${i <= step ? 1 : 0.45}"><span style="font-size:1.6rem">${i < step ? "✅" : i === step ? "👉" : "🔒"}</span><div class="grow"><b class="jua">${i}. ${n}</b><div class="small muted">${d}</div></div></div>`).join("")}
-    ${step === 2 && !S.bank.products.length ? `<div class="info">🌱 <b>적금 통장 만들 준비 완료!</b> 부모님께 "적금 통장 만들고 싶어요"라고 말해 봐요. (부모님 모드에 준비물 목록이 있어요)</div>` : ""}
+    ${step === 3 && !S.bank.products.length ? `<div class="info">🌱 <b>적금 통장 만들 준비 완료!</b> 부모님께 "적금 통장 만들고 싶어요"라고 말해 봐요. (부모님 모드에 준비물 목록이 있어요)</div>` : ""}
     <div class="prog" style="margin-top:8px"><i style="width:${Math.min(100, Math.round((Math.min(1, sp.dc / sp.rule.deposits) * 50) + Math.min(1, sp.b / sp.rule.minBalance) * 50))}%;background:linear-gradient(90deg,#9ED7FF,#3DA5F4)"></i><span>적금 준비 ${Math.min(100, Math.round((Math.min(1, sp.dc / sp.rule.deposits) * 50) + Math.min(1, sp.b / sp.rule.minBalance) * 50))}%</span></div>
   </div>
   <div class="card"><h2>📖 예금과 적금, 뭐가 달라요?</h2>
@@ -1214,7 +1257,7 @@ function viewBank() {
     <div class="info"><b class="jua">💎 예금</b><br>모아 둔 돈을 <b>한 번에</b> 맡기고, 약속한 날까지 기다리는 통장이에요.</div></div>
     <p class="small muted">약속한 날(만기)보다 먼저 꺼내면 이자가 줄어요. 이자는 작지만, 끝까지 약속을 지키는 경험이 진짜 보물이에요!</p></div>
   <div class="card"><h2>📸 통장 사진 기록</h2>
-    ${recs.length ? recs.slice(0, 12).map((r) => `<div class="tx" onclick="showRecord('${r.id}')"><span class="e">📸</span><div class="grow"><div class="jua">${fmt(r.balance)}</div><div class="small muted">${kdate(r.date)} · ${esc(bankAccounts().find((a) => a.id === (r.account || "main"))?.name || "통장")}</div></div>${r.parentOk ? `<span class="tag need">부모님 확인 ✔</span>` : ""}</div>`).join("") : `<p class="muted">아직 없어요.</p>`}</div>`;
+    ${recs.length ? recs.slice(0, 12).map((r) => `<div class="tx" onclick="showRecord('${r.id}')"><span class="e">${r.photoId ? "📸" : "✍️"}</span><div class="grow"><div class="jua">${fmt(r.balance)}</div><div class="small muted">${kdate(r.date)} · ${esc(bankAccounts().find((a) => a.id === (r.account || "main"))?.name || "통장")}</div></div>${r.parentOk ? `<span class="tag need">부모님 확인 ✔</span>` : ""}</div>`).join("") : `<p class="muted">아직 없어요.</p>`}</div>`;
 }
 function showRecord(id) {
   const r = S.bank.records.find((x) => x.id === id);
@@ -1345,7 +1388,7 @@ function dexModal() {
     <div>${Object.entries(BADGES).map(([k, [e, n]]) => `<div class="badge ${S.badges[k] ? "" : "off"}"><span class="e">${e}</span>${n}</div>`).join("")}</div>
     <h3 class="jua" style="margin:16px 0 6px">⭐ 최근 받은 XP</h3>
     ${S.xpLog.slice(0, 12).map((x) => `<div class="row small" style="margin:3px 0"><span class="grow">${esc(x.reason)}</span><span class="muted">${x.at.slice(5, 10).replace("-", "/")}</span><b style="width:60px;text-align:right;color:var(--brand)">+${x.amt}</b></div>`).join("") || `<p class="muted small">아직 없어요</p>`}
-    <div class="info small" style="margin-top:12px">XP는 이럴 때 받아요: 기록한 날 +5 · 계획대로 나누기 +15 · 2주 돌아보기 +20 · 잔액 딱 맞추기 +10 · 은행 입금 +40 · 통장 사진 +30 · 이자 발견 +20 · 기부 +30 · 목표 달성 +50 · 계약서 서명 +30<br>
+    <div class="info small" style="margin-top:12px">XP는 이럴 때 받아요: 기록한 날 +5 · 계획대로 나누기 +15 · 2주 돌아보기 +20 · 잔액 딱 맞추기 +10 · 은행 입금 +40 · 혼자 은행 다녀오기 +30 · 통장 사진 +30 · 이자 발견 +20 · 기부 +30 · 목표 달성 +50 · 계약서 서명 +30<br>
     돈을 적게 쓴다고 XP를 더 주지는 않아요. <b>솔직하게 기록하는 게</b> 친구를 키우는 방법이에요!</div>`);
 }
 
@@ -1600,24 +1643,59 @@ function pBank() {
       <p class="small">• 방문하는 부모님 신분증<br>• 가족관계증명서 (상세)<br>• 자녀 기준 기본증명서 (상세)<br>• 종이 통장이면 자녀 도장<br>• 서류는 <b>3개월 이내 발급</b>, 주민번호 뒷자리까지 모두 표시<br>• 만 14세 미만은 부모님과 함께 가야 해요. 은행 앱으로 비대면 개설이 되는 곳도 있어요.</p>
       <p class="small">💡 2주마다 2,000원처럼 나눠 넣으려면 <b>자유적립식 적금</b>이 잘 맞아요. 만기 후 목돈으로 예금에 도전하면 두 상품의 차이를 몸으로 배울 수 있어요.</p>
       <p class="small">금리 비교: <a href="https://finlife.fss.or.kr" target="_blank" rel="noopener">금융상품 한눈에 (금융감독원)</a></p></div>
-    <div class="card"><h2>➕ 적금·예금 통장 등록</h2>
-      <div class="grid2"><label class="fld"><span>종류</span><select id="bp_type" class="inp"><option>적금</option><option>예금</option></select></label>
-      <label class="fld"><span>은행</span><input id="bp_bank" class="inp" placeholder="예: OO은행"></label>
-      <label class="fld"><span>통장 이름</span><input id="bp_name" class="inp" placeholder="예: 꿈나무 적금"></label>
-      <label class="fld"><span>금리 (연 %)</span><input id="bp_rate" class="inp" type="number" step="0.1"></label>
-      <label class="fld"><span>시작일</span><input id="bp_start" class="inp" type="date" value="${today()}"></label>
-      <label class="fld"><span>만기일</span><input id="bp_end" class="inp" type="date" value="${addDays(today(), 365)}"></label></div>
-      <button class="btn wide" onclick="productAdd()">통장 등록 (캐릭터에 왕관이 생겨요 👑)</button></div>
-    ${S.bank.products.map((p) => `<div class="tx"><span class="e">${p.type === "예금" ? "💎" : "🌟"}</span><div class="grow">${esc(p.name || p.type)} · ${esc(p.bank)}<div class="small muted">${p.start} ~ ${p.end}</div></div><button class="chip" onclick="productDel('${p.id}')">지우기</button></div>`).join("")}
+    <div class="card"><h2>🏦 통장 관리</h2>
+      <div class="tx"><span class="e">🏦</span><div class="grow">입출금 통장<div class="small muted">기본 통장</div></div><b class="jua">${fmt(bankEstimate("main").est)}</b></div>
+      ${S.bank.products.map((p) => `<div class="tx"><span class="e">${p.type === "예금" ? "💎" : "🌟"}</span><div class="grow">${esc(p.name || p.type + " 통장")} <span class="small muted">${esc(p.bank)}</span><div class="small muted">${p.type}${p.rate ? " · 연 " + p.rate + "%" : ""}${p.end ? " · 만기 " + p.end : ""}</div></div><b class="jua">${fmt(bankEstimate(p.id).est)}</b><button class="chip" onclick="productEdit('${p.id}',null,true)">고치기</button></div>`).join("")}
+      <div class="grid2" style="margin-top:8px"><button class="btn sec" onclick="productEdit(null,'적금',true)">🌟 적금 통장 추가</button><button class="btn sec" onclick="productEdit(null,'예금',true)">💎 예금 통장 추가</button></div></div>
     <p class="small muted">통장 사진 기록은 통장 탭에서 눌러 '부모님 확인'을 해 줄 수 있어요.</p>`;
 }
 function ruleSet(k, v) { commit((st) => (st.savingsRule[k] = Number(v) || 0)); }
-function productAdd() {
-  const p = { id: uid(), type: $("#bp_type").value, bank: $("#bp_bank").value.trim(), name: $("#bp_name").value.trim(), rate: Number($("#bp_rate").value) || 0, start: $("#bp_start").value, end: $("#bp_end").value };
-  commit((st) => { st.bank.products.push(p); addBadge(st, "savings_open"); addXP(st, "product:" + p.id, 50, p.type + " 통장 개설"); });
-  toast("등록했어요! 🌟"); parentPanel("bank");
+// ---------- 예금·적금 통장 등록/수정 (부모님) ----------
+let PE_BACK = false;
+function productEdit(id, type, back) {
+  PE_BACK = !!back;
+  const p = S.bank.products.find((x) => x.id === id) || { type: type || "적금", bank: "", name: "", rate: "", monthly: "", start: today(), end: addDays(today(), 365) };
+  const html = `${head(id ? "통장 정보 고치기" : `${p.type} 통장 추가`, back ? "parentPanel('bank')" : "")}
+    <div class="grid2">
+      <label class="fld"><span>종류</span><select id="bp_type" class="inp" onchange="document.getElementById('bp_mon').style.display=this.value==='적금'?'':'none'">${["적금", "예금"].map((t) => `<option ${p.type === t ? "selected" : ""}>${t}</option>`).join("")}</select></label>
+      <label class="fld"><span>은행</span><input id="bp_bank" class="inp" value="${esc(p.bank)}" placeholder="예: OO은행"></label>
+      <label class="fld"><span>통장 이름</span><input id="bp_name" class="inp" value="${esc(p.name)}" placeholder="예: 꿈나무 적금"></label>
+      <label class="fld"><span>금리 (연 %)</span><input id="bp_rate" class="inp" type="number" step="0.01" value="${p.rate || ""}" placeholder="예: 3.5"></label>
+      <label class="fld" id="bp_mon" style="${p.type === "적금" ? "" : "display:none"}"><span>매달 넣는 돈 (원, 자유적립이면 비워도 돼요)</span><input id="bp_monthly" class="inp" type="number" value="${p.monthly || ""}"></label>
+      <label class="fld"><span>가입일</span><input id="bp_start" class="inp" type="date" value="${p.start || today()}"></label>
+      <label class="fld"><span>만기일</span><input id="bp_end" class="inp" type="date" value="${p.end || ""}"></label>
+      ${id ? "" : `<label class="fld"><span>지금 통장 잔액 (원)</span><input id="bp_bal" class="inp" type="number" placeholder="예: 1000000"></label>`}
+    </div>
+    ${id ? `<p class="small muted">잔액은 통장 탭의 📸 사진이나 ✍️ 잔액 버튼으로 넣어요.</p>` : `<p class="small muted">잔액을 지금 모르면 비워 두고, 나중에 통장 사진으로 넣어도 돼요.</p>`}
+    <button class="btn wide ok" onclick="productSave('${id || ""}')">${id ? "저장" : "통장 추가 (캐릭터에 왕관이 생겨요 👑)"}</button>
+    ${id ? `<div style="height:10px"></div><button class="btn bad wide" onclick="productDel('${id}')">이 통장 지우기</button>` : ""}`;
+  document.querySelector(".modal") ? setModal(html) : openModal(html);
 }
-function productDel(id) { if (!confirm("이 통장을 목록에서 지울까요?")) return; commit((st) => (st.bank.products = st.bank.products.filter((x) => x.id !== id))); parentPanel("bank"); }
+function productSave(id) {
+  const v = (k) => ($("#" + k) ? $("#" + k).value.trim() : "");
+  const d = { type: v("bp_type"), bank: v("bp_bank"), name: v("bp_name"), rate: Number(v("bp_rate")) || 0, monthly: v("bp_type") === "적금" ? Number(v("bp_monthly")) || 0 : 0, start: v("bp_start"), end: v("bp_end") };
+  if (d.end && d.start && d.end < d.start) return toast("만기일이 가입일보다 빨라요");
+  const bal0 = Number(v("bp_bal")) || 0;
+  if (id) {
+    commit((st) => { const p = st.bank.products.find((x) => x.id === id); if (p) Object.assign(p, d); });
+    toast("저장했어요");
+  } else {
+    const p = { id: uid(), ...d };
+    commit((st) => {
+      st.bank.products.push(p);
+      addBadge(st, "savings_open");
+      addXP(st, "product:" + p.id, 50, p.type + " 통장 개설");
+      if (bal0 > 0) { st.bank.records.push({ id: uid(), at: new Date().toISOString(), date: today(), account: p.id, balance: bal0, ai: null, photoId: null, rows: [], parentOk: true }); checkBankBadges(st, bal0); }
+    });
+    toast(`${d.type} 통장을 추가했어요! 🌟`);
+  }
+  PE_BACK ? parentPanel("bank") : closeModal();
+}
+function productDel(id) {
+  if (!confirm("이 통장을 목록에서 지울까요? (통장 사진 기록도 함께 지워져요)")) return;
+  commit((st) => { st.bank.products = st.bank.products.filter((x) => x.id !== id); st.bank.records = st.bank.records.filter((r) => r.account !== id); });
+  PE_BACK ? parentPanel("bank") : closeModal();
+}
 
 function pSet() {
   return `<div class="card"><h2>👛 가진 돈</h2>
