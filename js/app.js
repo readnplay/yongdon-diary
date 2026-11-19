@@ -62,7 +62,7 @@ function defaultContract() {
 }
 function defaultState() {
   return {
-    schema: 1, startedAt: today(), startSetAt: null,
+    schema: 1, startedAt: today(), startSetAt: null, tierSeen: 0,
     profile: { species: null, nickname: "" },
     contract: defaultContract(), contractHistory: [], proposals: [],
     menu: [
@@ -935,23 +935,23 @@ function vaultCard(big) {
     </div>
     <div class="vart">${coinArt(i)}</div></div>`;
 }
+// 통장 단계는 한 단계씩 차례로 축하한다 (0→270만 원이면 동전 통장 → 은빛 통장 두 번)
+// 본 단계는 서버에 저장해서, 부모님 폰에서 넣어도 아이 태블릿에서 축하가 나온다.
 function checkTierUp() {
-  if (!S || !S.profile.species) return false;
-  const cur = tierOf(bankTotal()), seen = lsGet("yd_seenTier", null);
-  if (isParentDevice() || seen == null || cur < seen) { lsSet("yd_seenTier", cur); return false; }
-  if (cur > seen && !document.querySelector(".celebrate") && !document.querySelector(".modal")) {
-    lsSet("yd_seenTier", cur);
-    const T = TIERS[cur];
-    const el = document.createElement("div");
-    el.className = "celebrate";
-    el.innerHTML = `<div class="vault t${cur}" style="width:min(88vw,440px);pointer-events:none;text-align:left"><div class="vleft"><div class="vtier">${T.e} ${T.name}</div><div class="vamt num">${fmt(bankTotal())}</div></div><div class="vart">${coinArt(cur)}</div></div>
-      <h1>통장이 업그레이드됐어요!</h1><p style="font-size:1.2rem">${T.e} <b>${T.name}</b><br>${T.say}</p>
-      <button class="btn" onclick="this.closest('.celebrate').remove();render();checkLevelUp()">멋져요! 🎉</button>`;
-    document.body.appendChild(el);
-    confetti(el); coinRain();
-    return true;
-  }
-  return false;
+  if (!S || !S.profile.species || isParentDevice()) return false;
+  const cur = tierOf(bankTotal()), seen = S.tierSeen || 0;
+  if (cur <= seen || document.querySelector(".celebrate") || document.querySelector(".modal")) return false;
+  const nx = seen + 1, T = TIERS[nx], last = nx === cur, steps = cur - seen;
+  const el = document.createElement("div");
+  el.className = "celebrate";
+  el.innerHTML = `${steps > 1 || nx > 1 ? `<div class="jua" style="font-size:1.1rem;background:#fff;border-radius:99px;padding:4px 14px;margin-bottom:8px">통장 레벨 업! ${nx}단계${!last ? ` · 아직 ${steps - 1}번 더 남았어요!` : ""}</div>` : ""}
+    <div class="vault t${nx}" style="width:min(88vw,440px);pointer-events:none;text-align:left"><div class="vleft"><div class="vtier">${T.e} ${T.name}</div><div class="vamt num">${last ? fmt(bankTotal()) : fmt(T.min) + " 돌파"}</div></div><div class="vart">${coinArt(nx)}</div></div>
+    <h1>통장이 업그레이드됐어요!</h1><p style="font-size:1.2rem">${T.e} <b>${T.name}</b><br>${T.say}</p>
+    <button class="btn" onclick="this.closest('.celebrate').remove();render();setTimeout(checkLevelUp,400)">${last ? "멋져요! 🎉" : "다음 단계도 보기 ▶"}</button>`;
+  document.body.appendChild(el);
+  commit((st) => { st.tierSeen = Math.max(st.tierSeen || 0, nx); }); // 축하 화면이 떠 있어서 다음 단계는 닫은 뒤에 나옴
+  confetti(el); coinRain();
+  return true;
 }
 function interestCard() {
   const ii = interestInfo(), b = ii.bal;
